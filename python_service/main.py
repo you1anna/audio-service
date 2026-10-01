@@ -23,7 +23,8 @@ from src.cli import CLI
 class MP3Service:
     """Main service class for audio processing."""
 
-    def __init__(self, config_path: str = "config.json", dry_run: bool = False, watch: bool = False):
+    def __init__(self, config_path: str = "config.json", dry_run: bool = False, watch: bool = False,
+                 require_ssd: bool = False):
         """
         Initialize the MP3 service.
 
@@ -31,10 +32,13 @@ class MP3Service:
             config_path: Path to configuration file
             dry_run: If True, preview changes without modifying files
             watch: If True, use file watching instead of polling
+            require_ssd: If True, do nothing unless the archive drive is mounted, and stop when it
+                is removed (for a host whose LaunchAgent starts the service on mount)
         """
         self.config = Config(config_path)
         self.dry_run = dry_run
         self.watch = watch
+        self.require_ssd = require_ssd
         self.logger = setup_logger(
             "MP3Service",
             log_file=self.config.log_file,
@@ -44,8 +48,26 @@ class MP3Service:
         self.running = False
         self.watcher = None
 
+    def _ssd_required_but_absent(self) -> bool:
+        return self.require_ssd and not self.processor.ssd_archiver.mounted
+
+    def _stop_if_ssd_removed(self) -> bool:
+        """With --require-ssd, a removed drive ends the service cleanly. Returns True if it stopped."""
+        if not self._ssd_required_but_absent():
+            return False
+        self.logger.info("SSD disconnected; stopping (--require-ssd). The service starts again when it is mounted.")
+        self.stop()
+        return True
+
     def start(self) -> None:
         """Start the service."""
+        if self._ssd_required_but_absent():
+            if self.processor.ssd_archiver.configured:
+                self.logger.info("SSD not connected; not starting (--require-ssd).")
+            else:
+                self.logger.warning("--require-ssd needs ssd_archive_path under /Volumes in config.json; not starting.")
+            return
+
         mode = "DRY-RUN MODE" if self.dry_run else "LIVE MODE"
         watch_mode = "File Watching" if self.watch else "Polling"
 
@@ -105,6 +127,8 @@ class MP3Service:
         while self.running:
             try:
                 time.sleep(self.config.poll_interval)
+                if self._stop_if_ssd_removed():
+                    break
                 self.logger.info("")
                 self.logger.info("Polling for new files...")
                 stats = self.processor.process_all()
@@ -135,6 +159,8 @@ class MP3Service:
             last_tick = time.monotonic()
             while self.running:
                 time.sleep(1)
+                if self._stop_if_ssd_removed():
+                    break
                 if time.monotonic() - last_tick >= self.config.poll_interval:
                     scheduler.tick()
                     last_tick = time.monotonic()
@@ -182,6 +208,7 @@ Examples:
   %(prog)s start                    Start service with default config
   %(prog)s start --dry-run          Preview changes without modifying files
   %(prog)s start --watch            Use file watching instead of polling
+  %(prog)s start --watch --require-ssd   Run only while the archive drive is mounted
   %(prog)s test                     Test configuration and preview files
   %(prog)s validate                 Validate configuration file
   %(prog)s doctor                   Report this machine's resolved config
@@ -213,6 +240,11 @@ Examples:
         '--watch', '-w',
         action='store_true',
         help='Use file watching instead of polling (requires watchdog)'
+    )
+    start_parser.add_argument(
+        '--require-ssd',
+        action='store_true',
+        help='Do nothing unless the archive drive (ssd_archive_path) is mounted, and stop when it is removed'
     )
 
     # Test command
@@ -309,7 +341,8 @@ Examples:
             print("\nProcessing complete!")
 
         elif args.command == 'start':
-            service = MP3Service(args.config, dry_run=args.dry_run, watch=args.watch)
+            service = MP3Service(args.config, dry_run=args.dry_run, watch=args.watch,
+                                 require_ssd=args.require_ssd)
             service.start()
 
     except KeyboardInterrupt:

@@ -31,6 +31,7 @@ Audio file processor for DJ workflow. Watches Soulseek downloads, processes to P
 - Config paths support `~` and `$VARS` (`src/config.py:expand_path`), so one config shape works on both hosts instead of hard-coding a home directory
 - `src/maintenance.py` self-heals watch mode: staging reconcile each poll tick, a full source rescan on SSD remount, and an infrequent sweep (`sweep_interval`, default 900s) as a catch-all. Files that keep failing are parked after `AudioProcessor.MAX_RETRY_ATTEMPTS` (3) and un-parked on remount or restart
 - SSD mount detection uses `os.path.ismount`, not `exists()` — a stale `/Volumes/<drive>` directory must not be treated as mounted
+- `start --require-ssd` (opt-in, `main.py`): do nothing unless the archive drive is mounted, and stop cleanly when it is removed. Without the flag the service keeps its original behaviour: it runs without the drive and self-heals on remount
 - BPM detection on all formats (was MP3-only)
 - BPM detection bounds: 65-135 (librosa range; not a filter — no files are skipped)
 - numpy array fix for librosa 0.11+ (`float(tempo[0])`)
@@ -40,9 +41,10 @@ Audio file processor for DJ workflow. Watches Soulseek downloads, processes to P
 
 | | Mac mini | MacBook Air |
 |---|---|---|
-| `ssd_archive_path` | `/Volumes/Extreme SSD/music` | same, but the drive is not attached |
+| `ssd_archive_path` | `/Volumes/Extreme SSD/music` | same; the drive is usually not attached |
 | `keep_flac_sources` | `false` — archive drive is the backstop | `true` — the source FLAC is the only lossless copy |
-| `local_path` role | staging, swept onto the SSD | final destination |
+| `local_path` role | staging, swept onto the SSD | staging, swept onto the SSD while it is attached |
+| When the service runs | at login, kept alive (`RunAtLoad`, `KeepAlive.SuccessfulExit=false`) | only while the SSD is mounted, never at login (Robin, 1 October 2026) |
 
 ## Testing
 - `python3 main.py doctor` — machine-resolved config report
@@ -54,6 +56,13 @@ Audio file processor for DJ workflow. Watches Soulseek downloads, processes to P
 ## Service
 - launchd: `com.macmini.mp3service`
 - Plist: `~/Library/LaunchAgents/com.macmini.mp3service.plist`
+- **MacBook Air: SSD-only.** Its plist is `python_service/launchd/com.macmini.mp3service.plist`: no
+  `RunAtLoad`, `StartOnMount`, `KeepAlive.Crashed` only, and `main.py start --watch --require-ssd`. launchd
+  starts it on any mount; `--require-ssd` exits at once unless the archive drive is mounted and stops the
+  service when the drive is removed. "Not running" with no SSD is the intended state there, not a fault,
+  and downloads wait in the source folder until the drive is connected. A drive already attached at login
+  raises no mount event: `launchctl kickstart gui/$(id -u)/com.macmini.mp3service`.
+- Do not use `KeepAlive.SuccessfulExit` on an SSD-only host: it implies `RunAtLoad` (`man launchd.plist`).
 - Log: `mp3_service.log`
 - Errors: `launchd_stderr.log`
 - Config: `poll_interval` 40s, `file_stability_wait` 5s

@@ -98,7 +98,16 @@ Example: if `/Volumes/Extreme SSD/music/Hemka - Rich Sex.mp3` exists and appears
 
 ## Run as a background service (launchd)
 
-Plist at `~/Library/LaunchAgents/com.macmini.mp3service.plist` runs `main.py start --watch` at login and restarts on crash.
+Plist at `~/Library/LaunchAgents/com.macmini.mp3service.plist`. Two forms:
+
+- **Always on (the Mac mini):** runs `main.py start --watch` at login and restarts on any non-zero exit
+  (`RunAtLoad`, `KeepAlive.SuccessfulExit=false`). Without the archive drive it holds output locally and
+  moves it across when the drive returns.
+- **Only with the archive drive (the MacBook Air):** `launchd/com.macmini.mp3service.plist`. It does not
+  start at login. launchd starts it when a volume is mounted (`StartOnMount`), and
+  `main.py start --watch --require-ssd` exits at once unless `ssd_archive_path`'s drive is mounted and
+  stops when the drive is removed. If the drive was already attached at login, start it with
+  `launchctl kickstart gui/$(id -u)/com.macmini.mp3service`.
 
 Optional Rekordbox XML sync plist:
 

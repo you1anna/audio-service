@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The audio service on a host that should run only while the archive SSD is connected (the MacBook Air,
+  1 October 2026). Copy to ~/Library/LaunchAgents/, adjust the home directory, then:
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.macmini.mp3service.plist
+
+  - No RunAtLoad: it does not start at login.
+  - StartOnMount: launchd starts it whenever any volume is mounted; `require-ssd` makes it exit at once
+    unless that volume is the archive drive, and stop when the drive is removed.
+  - KeepAlive is Crashed only. SuccessfulExit would imply RunAtLoad (man launchd.plist), which is exactly
+    the start-at-login behaviour this file removes.
+  A drive already attached at login raises no mount event: start it by hand with
+    launchctl kickstart gui/$(id -u)/com.macmini.mp3service
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.macmini.mp3service</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/macbookair/Dev/audio-service/python_service/.venv/bin/python3</string>
+        <string>/Users/macbookair/Dev/audio-service/python_service/main.py</string>
+        <string>start</string>
+        <string>--watch</string>
+        <string>--require-ssd</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/macbookair/Dev/audio-service/python_service</string>
+
+    <key>StartOnMount</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/macbookair/Dev/audio-service/python_service/.venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/macbookair/Dev/audio-service/python_service/launchd_stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/macbookair/Dev/audio-service/python_service/launchd_stderr.log</string>
+</dict>
+</plist>

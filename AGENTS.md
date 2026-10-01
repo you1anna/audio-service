@@ -10,7 +10,9 @@ See `CLAUDE.md` for full architecture detail.
 - Stale duplicate at `~/MP3-Service` — ignore it
 - Venv: `python_service/.venv` (Python 3.12)
 - Config: `python_service/config.json` (local only, not in git)
-- launchd service: `com.macmini.mp3service`
+- launchd service: `com.macmini.mp3service`. On the MacBook Air it runs only while the archive SSD is
+  mounted and never at login (`start --require-ssd`, `python_service/launchd/`); "not running" with no SSD
+  is intended there
 
 ## Entry points
 
