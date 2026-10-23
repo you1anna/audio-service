@@ -381,8 +381,10 @@ class AudioProcessor:
             if not str(input_abs).startswith('/') or not str(output_abs).startswith('/'):
                 self.logger.error(f"Refusing non-absolute ffmpeg path: {input_abs} / {output_abs}")
                 return False
+            # Soulseek peers choose these bytes and ffmpeg picks a demuxer from content, not
+            # name: pin the input to FLAC so a disguised file is refused rather than parsed.
             cmd = [
-                'ffmpeg', '-y', '-i', str(input_abs),
+                'ffmpeg', '-nostdin', '-y', '-f', 'flac', '-i', str(input_abs),
                 '-acodec', 'pcm_s16be',
                 '-ar', '44100',
                 '-f', 'aiff',
