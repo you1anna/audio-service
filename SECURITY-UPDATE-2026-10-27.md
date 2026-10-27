@@ -5,3 +5,5 @@ Python 3.12.16 and repaired pip/certificate trust must be installed per host. Th
 MacBook Air: 50 synthetic tests and pip check passed after the targeted updates. No real audio processing, library/config modification or service restart was performed. Preserve per-host FLAC retention and SSD guards. If validation fails, leave the watcher stopped and forward-fix; do not restore vulnerable dependencies or delete processing markers.
 
 The repository default branch is now main, following the personal-repository convention; master is retained. Existing Mac mini clones should fetch and switch to main before installing. The remote FLAC input-format fix was preserved and its tests rerun.
+
+Mac mini follow-up: the package-only OSV check also identified [GHSA-j586-36cw-2gc2](https://github.com/msgpack/msgpack-python/security/advisories/GHSA-j586-36cw-2gc2), fixed in MessagePack 1.2.3. The minimum is now 1.2.3; the Mini resolved 1.2.4. All 50 synthetic tests and pip check passed on Python 3.12.16. Both existing watchers were stopped before dependency changes and restarted with unchanged configuration; startup found zero audio files.
