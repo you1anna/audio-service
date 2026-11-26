@@ -3,7 +3,7 @@
 This repository is public. Before a commit, obey the "Public repository" rules in
 [AGENTS.md](AGENTS.md#public-repository).
 
-Audio file processor for DJ workflow. Watches Soulseek downloads, processes to Pioneer XDJ-compatible formats.
+Audio file processor for DJ workflow. Watches a download folder, processes to Pioneer XDJ-compatible formats.
 
 ## Setup
 - Venv: `python_service/.venv` (Python 3.12)
@@ -40,11 +40,11 @@ Audio file processor for DJ workflow. Watches Soulseek downloads, processes to P
 - numpy array fix for librosa 0.11+ (`float(tempo[0])`)
 
 ## Two machines
-`config.json` is gitignored, so the Mac mini and the MacBook Air each carry their own and `git pull` does **not** carry new keys across. Run `python3 main.py doctor` on a machine to see how it resolves its config and what that implies (paths, SSD mount state, FLAC retention, marker file, ffmpeg). The same report is written to the log at every service start.
+`config.json` is gitignored, so the archive host and the portable host each carry their own and `git pull` does **not** carry new keys across. Run `python3 main.py doctor` on a machine to see how it resolves its config and what that implies (paths, SSD mount state, FLAC retention, marker file, ffmpeg). The same report is written to the log at every service start.
 
-| | Mac mini | MacBook Air |
+| | Archive host | Portable host |
 |---|---|---|
-| `ssd_archive_path` | `/Volumes/Extreme SSD/music` | same; the drive is usually not attached |
+| `ssd_archive_path` | a folder on the archive drive | same; the drive is usually not attached |
 | `keep_flac_sources` | `false` — archive drive is the backstop | `true` — the source FLAC is the only lossless copy |
 | `local_path` role | staging, swept onto the SSD | staging, swept onto the SSD while it is attached |
 | When the service runs | at login, kept alive (`RunAtLoad`, `KeepAlive.SuccessfulExit=false`) | only while the SSD is mounted, never at login |
@@ -59,7 +59,7 @@ Audio file processor for DJ workflow. Watches Soulseek downloads, processes to P
 ## Service
 - launchd: `com.macmini.mp3service`
 - Plist: `~/Library/LaunchAgents/com.macmini.mp3service.plist`
-- **MacBook Air: SSD-only.** Its plist is `python_service/launchd/com.macmini.mp3service.plist`: no
+- **Portable host: SSD-only.** Its plist is `python_service/launchd/com.macmini.mp3service.plist`: no
   `RunAtLoad`, `StartOnMount`, `KeepAlive.Crashed` only, and `main.py start --watch --require-ssd`. launchd
   starts it on any mount; `--require-ssd` exits at once unless the archive drive is mounted and stops the
   service when the drive is removed. "Not running" with no SSD is the intended state there, not a fault,
@@ -71,6 +71,6 @@ Audio file processor for DJ workflow. Watches Soulseek downloads, processes to P
 - Config: `poll_interval` 40s, `file_stability_wait` 5s
 
 ## Paths
-- Source: `~/Soulseek Downloads/complete`
+- Source: `base_path` in `config.json` (the download folder)
 - Local staging: `~/Music/Processed`
-- SSD archive destination: `/Volumes/Extreme SSD/music` (Mac mini; absent on the Air)
+- SSD archive destination: `ssd_archive_path` in `config.json` (archive host; usually absent on the portable host)

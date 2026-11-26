@@ -1,6 +1,6 @@
 # MP3 Service — Agent Instructions
 
-Audio file processor for DJ workflow. Watches Soulseek downloads, processes to Pioneer XDJ-compatible formats.
+Audio file processor for DJ workflow. Watches a download folder, processes to Pioneer XDJ-compatible formats.
 
 See `CLAUDE.md` for full architecture detail.
 
@@ -9,7 +9,7 @@ See `CLAUDE.md` for full architecture detail.
 - Code: `python_service/` in this repository
 - Venv: `python_service/.venv` (Python 3.12)
 - Config: `python_service/config.json` (local only, not in git)
-- launchd service: `com.macmini.mp3service`. On the MacBook Air it runs only while the archive SSD is
+- launchd service: `com.macmini.mp3service`. On the portable host it runs only while the archive SSD is
   mounted and never at login (`start --require-ssd`, `python_service/launchd/`); "not running" with no SSD
   is intended there
 

@@ -5,7 +5,7 @@ alwaysApply: true
 
 # MP3 Service
 
-Audio file processor for DJ workflow. Watches Soulseek downloads, processes to Pioneer XDJ-compatible formats.
+Audio file processor for DJ workflow. Watches a download folder, processes to Pioneer XDJ-compatible formats.
 
 Read `CLAUDE.md` first for architecture, paths, and testing commands. Obey the "Public repository"
 rules in `AGENTS.md` before a commit.
@@ -20,7 +20,7 @@ rules in `AGENTS.md` before a commit.
 - `keep_flac_sources` (default `true`) decides whether source FLACs are deleted after conversion —
   deliberately independent of `ssd_archive_path`, since an unplugged drive must not change whether
   lossless originals are destroyed
-- Runs on both the Mac mini and the MacBook Air. `config.json` is gitignored, so each carries its
+- Runs on two hosts: an archive host and a portable host. `config.json` is gitignored, so each carries its
   own and `git pull` does not carry new keys across — run `main.py doctor` on a machine to see how
   it resolves its config
 
