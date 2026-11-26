@@ -1,5 +1,8 @@
 # audio-service
 
+This repository is public. Before a commit, obey the "Public repository" rules in
+[AGENTS.md](AGENTS.md#public-repository).
+
 Audio file processor for DJ workflow. Watches Soulseek downloads, processes to Pioneer XDJ-compatible formats.
 
 ## Setup
@@ -44,7 +47,7 @@ Audio file processor for DJ workflow. Watches Soulseek downloads, processes to P
 | `ssd_archive_path` | `/Volumes/Extreme SSD/music` | same; the drive is usually not attached |
 | `keep_flac_sources` | `false` — archive drive is the backstop | `true` — the source FLAC is the only lossless copy |
 | `local_path` role | staging, swept onto the SSD | staging, swept onto the SSD while it is attached |
-| When the service runs | at login, kept alive (`RunAtLoad`, `KeepAlive.SuccessfulExit=false`) | only while the SSD is mounted, never at login (Robin, 1 October 2026) |
+| When the service runs | at login, kept alive (`RunAtLoad`, `KeepAlive.SuccessfulExit=false`) | only while the SSD is mounted, never at login |
 
 ## Testing
 - `python3 main.py doctor` — machine-resolved config report

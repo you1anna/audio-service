@@ -6,8 +6,7 @@ See `CLAUDE.md` for full architecture detail.
 
 ## Key facts
 
-- Canonical path: `/Users/macbookair/Dev/audio-service/python_service`
-- Stale duplicate at `~/MP3-Service` — ignore it
+- Code: `python_service/` in this repository
 - Venv: `python_service/.venv` (Python 3.12)
 - Config: `python_service/config.json` (local only, not in git)
 - launchd service: `com.macmini.mp3service`. On the MacBook Air it runs only while the archive SSD is
@@ -45,3 +44,13 @@ python3 main.py doctor              # machine-resolved config report
 python3 main.py process --dry-run   # safe test
 .venv/bin/python -m unittest discover -s tests
 ```
+
+## Public repository
+
+This repository is public. Each commit, commit message, branch and author address is published.
+
+- Do not commit personal data or private intent, for example career, legal, health or money matters.
+- Do not add host paths, machine names, network addresses, credentials, session URLs or names of
+  private repositories. Use `~` or a relative path in examples.
+- Use the GitHub noreply address as the commit author. Use synthetic data in examples and tests.
+- If you are not sure that content is safe to publish, stop and ask Robin.
